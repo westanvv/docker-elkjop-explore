@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3.8"
 services:
 
   mongo:
@@ -18,6 +18,16 @@ services:
       - MONGO_INITDB_PASSWORD=${MONGO_INITDB_PASSWORD}
     command: ["-f", "/etc/mongod.conf"]
 
+  mongoclient:
+    image: mongoclient/mongoclient:4.0.0
+    container_name: mongoclient
+    ports:
+      - ${MONGOCLIENT_PORT}:3000
+    depends_on:
+      - mongo
+#    logging:
+#      driver: "none"
+
   mongoexpress:
     image: mongo-express
     container_name: mongo-express
@@ -31,8 +41,30 @@ services:
     depends_on:
       - mongo
 
-  mailhog:
-    build: ${DOCKER_CONFIGS}/mailhog
+  redis:
+    image: redis:latest
+    container_name: api-v2-redis
+    expose:
+      - ${REDIS_PORT}
     ports:
-      - ${MAILHOG_PORT}:1025
-      - ${MAILHOG_PORT_UI}:8025
+      - ${REDIS_PORT}:6379
+    environment:
+      - NODE_ENV=development
+      - ENVIRONMENT=development
+    volumes:
+      - ./redis_data:/data
+
+  redis-commander:
+    container_name: api-v2-redis-commander
+    hostname: api-v2-redis-commander
+    image: rediscommander/redis-commander:latest
+    ports:
+      - ${REDIS_COMMANDER_PORT}:8081
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_DB=${REDIS_DB}
+      - HTTP_USER=${REDIS_COMMANDER_HTTP_USER}
+      - HTTP_PASSWORD=${REDIS_COMMANDER_HTTP_PASSWORD}
+    depends_on:
+      - redis
