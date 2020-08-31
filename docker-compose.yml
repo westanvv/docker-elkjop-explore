@@ -18,7 +18,7 @@ services:
       - MONGO_INITDB_PASSWORD=${MONGO_INITDB_PASSWORD}
     command: ["-f", "/etc/mongod.conf"]
 
-  mongoclient:
+  mongo-ui:
     image: mongoclient/mongoclient:4.0.0
     container_name: mongoclient
     ports:
@@ -54,7 +54,7 @@ services:
     volumes:
       - ./redis_data:/data
 
-  redis-commander:
+  redis-ui:
     container_name: api-v2-redis-commander
     hostname: api-v2-redis-commander
     image: rediscommander/redis-commander:latest
@@ -68,3 +68,26 @@ services:
       - HTTP_PASSWORD=${REDIS_COMMANDER_HTTP_PASSWORD}
     depends_on:
       - redis
+
+  postgres:
+    image: postgres
+    restart: always
+    ports:
+      - ${POSTGRES_PORT}:5432
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DATABASE}
+    volumes:
+      - db-data:/var/lib/postgresql/data/
+
+  postgres-ui:
+    image: adminer
+    restart: always
+    ports:
+      - ${POSTGRES_UI_PORT}:8080
+    depends_on:
+      - postgres
+
+volumes:
+  db-data:
